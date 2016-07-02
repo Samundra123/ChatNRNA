@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_camera"
+            android:icon="@drawable/ic_menu_camera"
+            android:title="Chat Online" />
+        <item
+            android:id="@+id/nav_contact"
+            android:icon="@drawable/ic_menu_gallery"
+            android:title="Contact List" />
+        <item
+            android:id="@+id/nav_news"
+            android:icon="@drawable/ic_menu_slideshow"
+            android:title="News" />
+        <item
+            android:id="@+id/nav_events"
+            android:icon="@drawable/ic_menu_manage"
+            android:title="Events" />
+
+        <item
+            android:id="@+id/nav_newsletter"
+            android:icon="@drawable/ic_menu_share"
+            android:title="Newsletter" />
+        <item
+            android:id="@+id/nav_press"
+            android:icon="@drawable/ic_menu_share"
+            android:title="Press Release" />
+    </group>
+
+    <item android:title="About us">
+        <menu>
+            <item
+                android:id="@+id/nav_about"
+                android:icon="@drawable/ic_menu_share"
+                android:title="Contact us" />
+            <item
+                android:id="@+id/nav_send"
+                android:icon="@drawable/ic_menu_send"
+                android:title="Visit our Website" />
+        </menu>
+    </item>
+
+</menu>
