@@ -27,7 +27,7 @@ import java.util.List;
  */
 
 public class EventParsingActivity extends Fragment {
-    private final String TAG = "MainActivity";
+    private final String TAG = "EventParsingActivity";
     private RecyclerView recyclerView;
     private LinearLayoutManager layoutManager;
     private EventRecyclerViewAdapter adapter;

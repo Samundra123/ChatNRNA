@@ -60,7 +60,6 @@ public class NewsActivity extends Fragment {
         return mContentView;
     }
 
-
     class MyBrowser extends WebViewClient {
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {

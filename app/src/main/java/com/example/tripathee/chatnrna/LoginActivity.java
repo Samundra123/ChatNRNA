@@ -1,8 +1,11 @@
 package com.example.tripathee.chatnrna;
 
+import android.annotation.TargetApi;
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -10,6 +13,26 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import butterknife.BindView;
 
@@ -19,6 +42,7 @@ import butterknife.BindView;
 public class LoginActivity extends AppCompatActivity {
     private static final String TAG = "LoginActivity";
     private static final int REQUEST_SIGNUP = 0;
+    final String[] abc = new String[1];
 
     @BindView(R.id.input_email) EditText _emailText;
     @BindView(R.id.input_password) EditText _passwordText;
@@ -53,7 +77,9 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
+
     }
+
 
     public void login() {
         Log.d(TAG, "Login");
@@ -74,19 +100,64 @@ public class LoginActivity extends AppCompatActivity {
         String email = _emailText.getText().toString();
         String password = _passwordText.getText().toString();
 
+        requestJsonObject(email,password);
+
         // TODO: Implement your own authentication logic here.
 
         new android.os.Handler().postDelayed(
                 new Runnable() {
                     public void run() {
                         // On complete call either onLoginSuccess or onLoginFailed
-                        onLoginSuccess();
+                        if(!abc[0].equals("false")){
+
+                            onLoginSuccess();
+
+                        }
+                        else{
+                            onLoginFailed();
+                        }
+
                         // onLoginFailed();
                         progressDialog.dismiss();
                     }
                 }, 3000);
     }
 
+    private void requestJsonObject(String email, String password) {
+        RequestQueue queue = Volley.newRequestQueue(this);
+        String url = "http://nrna.org.np/nrna_app/app_user/check_user/" + email + "/" + password;
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                Log.d(TAG, "Response " + response);
+                try {
+                    JSONArray object = new JSONArray(response);
+                    //JSONArray Jarray = object.getJSONArray("app_user_id");
+
+                    //for (int i = 0; i < object.length(); i++) {
+                        JSONObject Jasonobject = object.getJSONObject(0);
+                        abc[0] = Jasonobject.getString("app_user_id");
+                        System.out.println("app" +abc[0]);
+                   // }
+                    //String site = jsonResponse.getString("site")
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                //GsonBuilder builder = new GsonBuilder();
+                //Gson mGson = builder.create();
+                //List<LoginData> posts = new ArrayList<LoginData>();
+                //posts = Arrays.asList(mGson.fromJson(response, LoginData[].class));
+
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.d(TAG, "Error " + error.getMessage());
+            }
+        });
+        queue.add(stringRequest);
+    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
