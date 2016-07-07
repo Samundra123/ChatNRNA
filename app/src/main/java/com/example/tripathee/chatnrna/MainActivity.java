@@ -2,6 +2,7 @@ package com.example.tripathee.chatnrna;
 
 
 import android.content.Context;
+import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
@@ -57,7 +58,19 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         location = (TextView) findViewById(R.id.location);
-        location.setText(getUserCountry(this));
+
+        //Get the value from login activity and set the text of app_user_id
+        Bundle extras = getIntent().getExtras();
+        if(extras !=null) {
+            location.setText(extras.getString("record"));
+        }
+        /*LoginActivity check_login = new LoginActivity();
+
+        if(check_login.requestJsonObject() !=null){
+            Intent intent = new Intent(this,LoginActivity.class);
+            startActivity(intent);
+            finish();
+        }*/
 
         final String URL = "http://nrna.org.np/nrna_app/app_user/set_location/";
         if(isNetworkAvailable() ==true) {
@@ -205,7 +218,13 @@ public class MainActivity extends AppCompatActivity
             drawer.closeDrawer(GravityCompat.START);
 
 
-        } else if (id == R.id.nav_send) {
+        } else if (id == R.id.nav_notice) {
+            fragment =getSupportFragmentManager().findFragmentByTag("NoticeParsingActivity");
+            if(fragment ==null){
+                fragment = new NoticeParsingActivity();
+            }
+            getSupportFragmentManager().beginTransaction().replace(R.id.home,fragment,"NoticeParsingActivity").commit();
+            drawer.closeDrawer(GravityCompat.START);
 
         }
 

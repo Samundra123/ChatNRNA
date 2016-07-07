@@ -2,7 +2,11 @@ package com.example.tripathee.chatnrna;
 
 import android.annotation.TargetApi;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.SystemClock;
@@ -14,6 +18,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -41,8 +46,16 @@ import butterknife.BindView;
  */
 public class LoginActivity extends AppCompatActivity {
     private static final String TAG = "LoginActivity";
+    public static final String MyPREFERENCES = "MyPrefs" ;
+    public static final String Name = "nameKey";
+    public static final String Email = "emailKey";
+    public static final String Password = "passKey";
     private static final int REQUEST_SIGNUP = 0;
     final String[] abc = new String[1];
+    String email;
+    String password;
+    SharedPreferences sharedpreferences;
+    Integer count=0;
 
     @BindView(R.id.input_email) EditText _emailText;
     @BindView(R.id.input_password) EditText _passwordText;
@@ -59,11 +72,22 @@ public class LoginActivity extends AppCompatActivity {
         _loginButton = (Button) findViewById(R.id.btn_login);
         _signupLink = (TextView) findViewById(R.id.link_signup);
 
+        //create sharedpreferencees instance
+        sharedpreferences = getSharedPreferences(MyPREFERENCES, Context.MODE_PRIVATE);
+        System.out.println( "oooo "+isNetworkAvailable());
+
         _loginButton.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
-                login();
+
+
+                if(isNetworkAvailable() == true) {
+                    login();
+                }
+                else {
+                   Toast.makeText(LoginActivity.this, "Login failed, Please check your connection", Toast.LENGTH_LONG).show();
+                }
             }
         });
 
@@ -77,9 +101,21 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
-
+        //if the value of email is not null, then go to our MainActivity class
+        //if this clause is executed then, Main Activity is launched directly
+       if(sharedpreferences.getString(Email, null) != null){
+           Intent intent = new Intent(this,MainActivity.class);
+           startActivity(intent);
+           finish();
+       }
     }
 
+    private boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager
+                = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+    }
 
     public void login() {
         Log.d(TAG, "Login");
@@ -97,10 +133,13 @@ public class LoginActivity extends AppCompatActivity {
         progressDialog.setMessage("Authenticating...");
         progressDialog.show();
 
-        String email = _emailText.getText().toString();
-        String password = _passwordText.getText().toString();
+        //when user types the value of email and password it saves it into email and password
+        email = _emailText.getText().toString();
+        password = _passwordText.getText().toString();
 
-        requestJsonObject(email,password);
+
+        //this function parses the json and get the required response
+        requestJsonObject();
 
         // TODO: Implement your own authentication logic here.
 
@@ -108,11 +147,20 @@ public class LoginActivity extends AppCompatActivity {
                 new Runnable() {
                     public void run() {
                         // On complete call either onLoginSuccess or onLoginFailed
+
+                        //this checks the value of response
+                        //if true then save it to sharedpreferences for future use
+                        //then open logins success
                         if(!abc[0].equals("false")){
 
+                            SharedPreferences.Editor editor = sharedpreferences.edit();
+                            editor.putString(Email, email);
+                            editor.putString(Password, password);
                             onLoginSuccess();
 
+
                         }
+                        //if check is false then it is executed
                         else{
                             onLoginFailed();
                         }
@@ -120,10 +168,10 @@ public class LoginActivity extends AppCompatActivity {
                         // onLoginFailed();
                         progressDialog.dismiss();
                     }
-                }, 3000);
+                }, 5000);
     }
 
-    private void requestJsonObject(String email, String password) {
+    public String[] requestJsonObject() {
         RequestQueue queue = Volley.newRequestQueue(this);
         String url = "http://nrna.org.np/nrna_app/app_user/check_user/" + email + "/" + password;
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
@@ -138,6 +186,11 @@ public class LoginActivity extends AppCompatActivity {
                         JSONObject Jasonobject = object.getJSONObject(0);
                         abc[0] = Jasonobject.getString("app_user_id");
                         System.out.println("app" +abc[0]);
+
+                    //saves the value of the abc
+                    SharedPreferences.Editor editor = sharedpreferences.edit();
+                    editor.putString(Name, abc[0]);
+
                    // }
                     //String site = jsonResponse.getString("site")
 
@@ -157,6 +210,13 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
         queue.add(stringRequest);
+                stringRequest.setRetryPolicy(
+                new DefaultRetryPolicy(
+                        DefaultRetryPolicy.DEFAULT_TIMEOUT_MS,
+                        DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                        DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+
+        return abc;
     }
 
     @Override
@@ -180,6 +240,7 @@ public class LoginActivity extends AppCompatActivity {
     public void onLoginSuccess() {
         _loginButton.setEnabled(true);
         Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+        intent.putExtra("record", abc[0]);
         startActivity(intent);
         finish();
     }

@@ -17,6 +17,5 @@
         android:id="@+id/location"
         android:textSize="30dp"
         android:layout_height="wrap_content"
-        android:layout_width="wrap_content"
-        android:text="heelloo"/>
+        android:layout_width="wrap_content" />
 </RelativeLayout>
