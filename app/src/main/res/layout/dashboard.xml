@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:id="@+id/dash_call"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:layout_height="100dp"
+        android:layout_width="100dp"
+        android:src="@mipmap/nrna_icon"
+        android:layout_margin="15dp"
+        android:layout_gravity="center"
+        />
+
+    <TextView
+        android:id="@+id/location"
+        android:textSize="20dp"
+        android:text="It is the Communicational mobile application for people working in NRNA"
+        android:layout_margin="10dp"
+        android:layout_gravity="center"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content" />
+
+    <TextView
+        android:id="@+id/test"
+        android:textSize="20dp"
+        android:text="You can Visit Site at:"
+        android:layout_margin="10dp"
+        android:layout_gravity="center"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content" />
+
+    <TextView
+        android:id="@+id/site"
+        android:textSize="20dp"
+        android:text="nrna.org.np"
+        android:layout_margin="10dp"
+        android:layout_gravity="center"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:autoLink="web" />
+
+</LinearLayout>

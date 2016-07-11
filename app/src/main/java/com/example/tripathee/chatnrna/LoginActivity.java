@@ -35,6 +35,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.security.spec.ECField;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -50,8 +51,12 @@ public class LoginActivity extends AppCompatActivity {
     public static final String Name = "nameKey";
     public static final String Email = "emailKey";
     public static final String Password = "passKey";
+    public static final String App_id ="save_id";
+    public static final String Pass_App_Id ="pass_app_id";
     private static final int REQUEST_SIGNUP = 0;
-    final String[] abc = new String[1];
+    final String[] abc = new String[5];
+    String app_user_id_;
+    String notimes;
     String email;
     String password;
     SharedPreferences sharedpreferences;
@@ -74,7 +79,13 @@ public class LoginActivity extends AppCompatActivity {
 
         //create sharedpreferencees instance
         sharedpreferences = getSharedPreferences(MyPREFERENCES, Context.MODE_PRIVATE);
-        System.out.println( "oooo "+isNetworkAvailable());
+        System.out.println( "oooo "+sharedpreferences.getString("save_user_id", null));
+
+        if(sharedpreferences.getString("save_user_id", null) != null || sharedpreferences.getString(Email, null) != null){
+            Intent intent = new Intent(this,MainActivity.class);
+            startActivity(intent);
+            finish();
+        }
 
         _loginButton.setOnClickListener(new View.OnClickListener() {
 
@@ -103,11 +114,7 @@ public class LoginActivity extends AppCompatActivity {
 
         //if the value of email is not null, then go to our MainActivity class
         //if this clause is executed then, Main Activity is launched directly
-       if(sharedpreferences.getString(Email, null) != null){
-           Intent intent = new Intent(this,MainActivity.class);
-           startActivity(intent);
-           finish();
-       }
+
     }
 
     private boolean isNetworkAvailable() {
@@ -140,6 +147,7 @@ public class LoginActivity extends AppCompatActivity {
 
         //this function parses the json and get the required response
         requestJsonObject();
+        System.out.println("Check one" +app_user_id_);
 
         // TODO: Implement your own authentication logic here.
 
@@ -151,27 +159,40 @@ public class LoginActivity extends AppCompatActivity {
                         //this checks the value of response
                         //if true then save it to sharedpreferences for future use
                         //then open logins success
-                        if(!abc[0].equals("false")){
+                        try {
+                            if (!app_user_id_.equals("false")) {
 
-                            SharedPreferences.Editor editor = sharedpreferences.edit();
-                            editor.putString(Email, email);
-                            editor.putString(Password, password);
-                            onLoginSuccess();
+                                SharedPreferences.Editor editor = sharedpreferences.edit();
+                                editor.putString(Email, email);
+                                editor.putString(Password, password);
+                                editor.commit();
+                                //editor.putString(App_id, app_user_id_);
 
-
+                                if (!notimes.equals("a")) {
+                                    Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                                    intent.putExtra("app_user", app_user_id_);
+                                    startActivity(intent);
+                                    finish();
+                                    System.out.println("Check");
+                                } else {
+                                    onLoginSuccess();
+                                }
+                            }
+                            //if check is false then it is executed
+                            else {
+                                onLoginFailed();
+                            }
+                        } catch (Exception e){
+                            e.getMessage();
                         }
-                        //if check is false then it is executed
-                        else{
-                            onLoginFailed();
-                        }
-
                         // onLoginFailed();
                         progressDialog.dismiss();
                     }
-                }, 5000);
+
+                }, 3000);
     }
 
-    public String[] requestJsonObject() {
+    public void requestJsonObject() {
         RequestQueue queue = Volley.newRequestQueue(this);
         String url = "http://nrna.org.np/nrna_app/app_user/check_user/" + email + "/" + password;
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
@@ -182,25 +203,19 @@ public class LoginActivity extends AppCompatActivity {
                     JSONArray object = new JSONArray(response);
                     //JSONArray Jarray = object.getJSONArray("app_user_id");
 
-                    //for (int i = 0; i < object.length(); i++) {
+
                         JSONObject Jasonobject = object.getJSONObject(0);
-                        abc[0] = Jasonobject.getString("app_user_id");
-                        System.out.println("app" +abc[0]);
+                        app_user_id_ = Jasonobject.getString("app_user_id");
+                        notimes = Jasonobject.getString("notimes");
+                        System.out.println("app" +app_user_id_ +notimes);
 
                     //saves the value of the abc
-                    SharedPreferences.Editor editor = sharedpreferences.edit();
-                    editor.putString(Name, abc[0]);
 
-                   // }
                     //String site = jsonResponse.getString("site")
 
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-                //GsonBuilder builder = new GsonBuilder();
-                //Gson mGson = builder.create();
-                //List<LoginData> posts = new ArrayList<LoginData>();
-                //posts = Arrays.asList(mGson.fromJson(response, LoginData[].class));
 
             }
         }, new Response.ErrorListener() {
@@ -209,14 +224,13 @@ public class LoginActivity extends AppCompatActivity {
                 Log.d(TAG, "Error " + error.getMessage());
             }
         });
-        queue.add(stringRequest);
-                stringRequest.setRetryPolicy(
+        int socketTimeout = 30000;
+        stringRequest.setRetryPolicy(
                 new DefaultRetryPolicy(
-                        DefaultRetryPolicy.DEFAULT_TIMEOUT_MS,
+                        socketTimeout,
                         DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
                         DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
-
-        return abc;
+        queue.add(stringRequest);
     }
 
     @Override
@@ -239,8 +253,8 @@ public class LoginActivity extends AppCompatActivity {
 
     public void onLoginSuccess() {
         _loginButton.setEnabled(true);
-        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-        intent.putExtra("record", abc[0]);
+        Intent intent = new Intent(getApplicationContext(), SignupActivity.class);
+        intent.putExtra(Pass_App_Id, app_user_id_);
         startActivity(intent);
         finish();
     }

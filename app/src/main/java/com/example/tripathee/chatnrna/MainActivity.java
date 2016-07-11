@@ -50,6 +50,7 @@ public class MainActivity extends AppCompatActivity
 
     DrawerLayout drawer;
     TextView location;
+    NavigationView navigationView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,13 +65,6 @@ public class MainActivity extends AppCompatActivity
         if(extras !=null) {
             location.setText(extras.getString("record"));
         }
-        /*LoginActivity check_login = new LoginActivity();
-
-        if(check_login.requestJsonObject() !=null){
-            Intent intent = new Intent(this,LoginActivity.class);
-            startActivity(intent);
-            finish();
-        }*/
 
         final String URL = "http://nrna.org.np/nrna_app/app_user/set_location/";
         if(isNetworkAvailable() ==true) {
@@ -101,8 +95,17 @@ public class MainActivity extends AppCompatActivity
         drawer.setDrawerListener(toggle);
         toggle.syncState();
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+
+         Fragment fragments =getSupportFragmentManager().findFragmentByTag("DashBoard");
+        if(fragments ==null){
+            fragments = new DashBoard();
+        }
+        getSupportFragmentManager().beginTransaction().replace(R.id.home,fragments,"DashBoard").commit();
+        drawer.closeDrawer(GravityCompat.START);
+        //onNavigationItemSelected(navigationView.getMenu().findItem(R.id.nav_camera));
+
     }
 
     private boolean isNetworkAvailable() {
@@ -168,9 +171,18 @@ public class MainActivity extends AppCompatActivity
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
+        //navigationView.setCheckedItem(R.id.nav_camera);
+        //navigationView.getMenu().getItem(0).setChecked(true);
         Fragment fragment= null;
 
         if (id == R.id.nav_camera) {
+
+            fragment =getSupportFragmentManager().findFragmentByTag("DashBoard");
+            //if(fragment ==null){
+                fragment = new DashBoard();
+           // }
+            getSupportFragmentManager().beginTransaction().replace(R.id.home,fragment,"ContactActivity").commit();
+            drawer.closeDrawer(GravityCompat.START);
             // Handle the camera action
         } else if (id == R.id.nav_contact) {
             fragment =getSupportFragmentManager().findFragmentByTag("ContactActivity");
