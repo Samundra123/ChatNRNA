@@ -83,6 +83,7 @@ public class LoginActivity extends AppCompatActivity {
 
         if(sharedpreferences.getString("save_user_id", null) != null || sharedpreferences.getString(Email, null) != null){
             Intent intent = new Intent(this,MainActivity.class);
+            intent.putExtra("app_user_Login", sharedpreferences.getString("save_user_id", null));
             startActivity(intent);
             finish();
         }
@@ -165,6 +166,7 @@ public class LoginActivity extends AppCompatActivity {
                                 SharedPreferences.Editor editor = sharedpreferences.edit();
                                 editor.putString(Email, email);
                                 editor.putString(Password, password);
+                                editor.putString("save_my_id_please", app_user_id_);
                                 editor.commit();
                                 //editor.putString(App_id, app_user_id_);
 

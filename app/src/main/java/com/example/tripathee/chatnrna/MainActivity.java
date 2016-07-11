@@ -3,6 +3,7 @@ package com.example.tripathee.chatnrna;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
@@ -16,12 +17,14 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.webkit.WebView;
 import android.widget.TextView;
 
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -37,6 +40,9 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.BufferedHttpEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.w3c.dom.Text;
 
 import java.io.BufferedReader;
@@ -48,9 +54,26 @@ import java.util.Locale;
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
+    public static final String MyPREFERENCES = "MyPrefs";
+    public static final String Email = "emailKey";
+    public static final String Password = "passKey";
     DrawerLayout drawer;
     TextView location;
     NavigationView navigationView;
+
+    SharedPreferences sharedpreferences;
+
+    String received_email ,received_login_email;
+    String received_password , received_login_password;
+    String json_name;
+    String json_email;
+    Integer check_activity;
+
+    String json_app_id;
+    String json_notimes;
+    TextView name;
+    TextView email;
+    String app_id_extracted;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,19 +81,24 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        location = (TextView) findViewById(R.id.location);
+        //location = (TextView) findViewById(R.id.location);
 
         //Get the value from login activity and set the text of app_user_id
         Bundle extras = getIntent().getExtras();
         if(extras !=null) {
-            location.setText(extras.getString("record"));
-        }
+            app_id_extracted =extras.getString("app_user");
 
-        final String URL = "http://nrna.org.np/nrna_app/app_user/set_location/";
+        }
+        sharedpreferences = getSharedPreferences(MyPREFERENCES, Context.MODE_PRIVATE);
+
+        requestJsonObject();
+
         if(isNetworkAvailable() ==true) {
+            final String URL = "http://nrna.org.np/nrna_app/app_user/set_location/"+ sharedpreferences.getString("save_my_id_please", null) +"/";
             RequestQueue queue = Volley.newRequestQueue(this);
 
-            StringRequest stringRequest = new StringRequest(Request.Method.GET, URL+getUserCountry(this), null, null);
+            StringRequest stringRequest = new StringRequest(Request.Method.GET, URL +getUserCountry(this), null, null);
+            System.out.println("location" + stringRequest);
 // Add the request to the RequestQueue.
             queue.add(stringRequest);
 
@@ -95,8 +123,21 @@ public class MainActivity extends AppCompatActivity
         drawer.setDrawerListener(toggle);
         toggle.syncState();
 
+
         navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+
+        System.out.println("checkinggg"+sharedpreferences.getString("my_login_username", null) +sharedpreferences.getString("my_login_email", null) );
+
+        View header=navigationView.getHeaderView(0);
+        name = (TextView)header.findViewById(R.id.username);
+        email = (TextView)header.findViewById(R.id.email_id);
+
+        if(sharedpreferences.getString("my_login_username", null) != null && sharedpreferences.getString("my_login_email",null) !=null)
+        {
+            name.setText(sharedpreferences.getString("my_login_username", null));
+            email.setText(sharedpreferences.getString("my_login_email",null));
+        }
 
          Fragment fragments =getSupportFragmentManager().findFragmentByTag("DashBoard");
         if(fragments ==null){
@@ -106,6 +147,63 @@ public class MainActivity extends AppCompatActivity
         drawer.closeDrawer(GravityCompat.START);
         //onNavigationItemSelected(navigationView.getMenu().findItem(R.id.nav_camera));
 
+    }
+
+    private void requestJsonObject() {
+        RequestQueue queue = Volley.newRequestQueue(this);
+        String url = "http://nrna.org.np/nrna_app/app_user/check_user/" +sharedpreferences.getString(Email, null) + "/" + sharedpreferences.getString(Password, null);
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                Log.d("MainActivity", "Response " + response);
+                try {
+                    JSONArray object = new JSONArray(response);
+                    //JSONArray Jarray = object.getJSONArray("app_user_id");
+
+
+                    JSONObject Jasonobject = object.getJSONObject(0);
+
+                    json_name = Jasonobject.getString("fullname");
+                    json_email = Jasonobject.getString("email");
+                    json_app_id = Jasonobject.getString("app_user_id");
+                    json_notimes = Jasonobject.getString("notimes");
+                    System.out.println("app" +json_name+json_email +json_app_id +json_notimes);
+
+                    //sharedpreferences = getSharedPreferences(MyPREFERENCES, Context.MODE_PRIVATE);
+
+                    SharedPreferences.Editor editor = sharedpreferences.edit();
+
+
+                        name.setText(json_name);
+                        email.setText(json_email);
+
+                        editor.putString("my_login_username", json_name);
+                        editor.putString("my_login_email", json_email);
+                        editor.commit();
+
+
+                    //saves the value of the abc
+
+                    //String site = jsonResponse.getString("site")
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.d("MainActivity", "Error " + error.getMessage());
+            }
+        });
+       /* int socketTimeout = 30000;
+        stringRequest.setRetryPolicy(
+                new DefaultRetryPolicy(
+                        socketTimeout,
+                        DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                        DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));*/
+        queue.add(stringRequest);
     }
 
     private boolean isNetworkAvailable() {

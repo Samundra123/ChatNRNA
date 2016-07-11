@@ -33,6 +33,8 @@ import butterknife.BindView;
 public class SignupActivity extends AppCompatActivity {
     private static final String TAG = "SignupActivity";
     public static final String MyPREFERENCES = "MyPrefs";
+    public static final String Email = "emailKey";
+    public static final String Password = "passKey";
 
     public static final String Pass_App_Id ="pass_app_id";
     final String[] abc = new String[5];
@@ -52,6 +54,8 @@ public class SignupActivity extends AppCompatActivity {
     String add2 ;
     String phone;
 
+    String login_email;
+    String login_password;
     String app_user_id;
 
 
